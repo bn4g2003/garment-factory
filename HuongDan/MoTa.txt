@@ -1,0 +1,155 @@
+PHẦN 1: QUẢN LÝ XƯỞNG MAY
+1. Dashboard (Bảng điều khiển xưởng)
+
+Tổng quan tiến độ các đơn hàng.
+
+Thống kê nhanh: Số đơn đang xử lý, đơn chờ NVL, cảnh báo tồn kho NVL thấp.
+
+Biểu đồ hiệu suất sản xuất theo ngày/tuần.
+
+2. Quản lý Đơn hàng Sản xuất
+
+Danh sách đơn hàng: Nhận đơn từ cửa hàng, hiển thị đầy đủ thông tin (KH, số lượng, doanh thu, công nợ).
+
+Tạo & Lên đơn hàng mới: Cho phép add định mức sản phẩm, nhập số lượng sản xuất.
+
+Kiểm tra tồn kho NVL theo đơn: Tự động báo cáo NVL đủ/thiếu ngay khi lên đơn.
+
+3. Quản lý Định mức Sản phẩm
+
+Danh mục mã hàng: Tạo, sửa, xóa các mã hàng.
+
+Chi tiết định mức: Với mỗi mã hàng, cho phép khai báo định mức NVL (kèm mã NVL).
+
+4. Quy trình Sản xuất (Quét mã QR)
+
+Giao diện theo dõi tiến độ: Hiển thị trạng thái từng đơn hàng qua các công đoạn (Cắt -> May -> Hoàn thiện -> Kiểm kê).
+
+Giao diện cho Tổ trưởng/Tổ phó: Để quét mã hoàn thành công đoạn. Mỗi công đoạn có một giao diện đơn giản để quét mã đơn hàng và cập nhật trạng thái.
+
+5. Quản lý Kho Nguyên Vật Liệu (NVL)
+
+Danh mục NVL: Quản lý 500+ mã NVL.
+
+Nhập/Xuất/Tồn kho NVL: Ghi nhận mọi giao dịch.
+
+Đặt mua NVL: Tạo phiếu đặt hàng NCC khi kho thiếu.
+
+Báo cáo tồn kho: Lọc theo ngày, khách hàng, đơn hàng.
+
+6. Quản lý Kho Thành phẩm
+
+Nhập kho TP: Từ xưởng sản xuất hoàn thành.
+
+Xuất kho TP: Xuất cho cửa hàng hoặc xuất trực tiếp cho khách.
+
+Kiểm kê thành phẩm.
+
+7. Quản lý Nhân sự & Chấm công
+
+Danh sách công nhân.
+
+Chấm công: Trưởng phòng/Quản đốc chấm công cho nhân viên.
+
+Tính lương, thưởng: (Sẽ setup chi tiết sau).
+
+8. Báo cáo Xưởng may
+
+Báo cáo doanh thu & công nợ khách hàng.
+
+Báo cáo thu chi.
+
+Báo cáo hiệu suất sản xuất.
+
+Báo cáo xuất/nhập/tồn NVL.
+
+PHẦN 2: QUẢN LÝ CỬA HÀNG
+9. Dashboard (Bảng điều khiển cửa hàng)
+
+Tổng quan doanh thu, đơn hàng mới trong ngày.
+
+Thống kê tồn kho, cảnh báo hàng hết/sắp hết.
+
+10. Quản lý Bán hàng
+
+Tạo đơn hàng, hóa đơn bán lẻ.
+
+Danh sách khách hàng: Quản lý thông tin và công nợ.
+
+11. Quản lý Kho Cửa hàng
+
+Nhập kho từ xưởng: Ghi nhận hàng chuyển về.
+
+Quản lý tồn kho thành phẩm tại cửa hàng.
+
+Kiểm kê, cảnh báo hết hàng.
+
+12. Quản lý Thu Chi Cửa hàng
+
+Ghi nhận thu/chi.
+
+Đề xuất thu chi: Nhân viên tạo, quản lý duyệt.
+
+13. Báo cáo Cửa hàng
+
+Báo cáo doanh thu.
+
+Báo cáo công nợ khách hàng.
+
+Báo cáo thu chi, nhập xuất tồn.
+
+PHẦN 3: MODULES HỆ THỐNG & DÙNG CHUNG
+14. Quản lý Tài chính (Dùng chung)
+
+Danh mục tài chính.
+
+Sổ quỹ: Theo dõi thu/chi toàn công ty.
+
+Quản lý tài khoản ngân hàng.
+
+15. Quản lý Nhà cung cấp & Đặt hàng
+
+Danh sách NCC.
+
+Quản lý công nợ NCC.
+
+Đặt hàng NVL từ NCC.
+
+16. Quản lý Người dùng & Phân quyền
+
+Phân quyền cho: Xưởng, Cửa hàng, Kế toán, Quản lý cấp cao.
+
+17. Cấu hình Hệ thống
+
+Cài đặt chung, thiết lập các danh mục (đơn vị tính, loại sản phẩm...).
+
+TÓM TẮT CÁC TRANG CHÍNH CẦN LÀM:
+Dashboard Xưởng May
+
+Trang Quản lý Đơn hàng Sản xuất
+
+Trang Quản lý Định mức Sản phẩm
+
+Trang Quy trình Sản xuất (Giao diện quét mã)
+
+Trang Quản lý Kho NVL
+
+Trang Quản lý Kho Thành phẩm (Xưởng)
+
+Trang Báo cáo Xưởng may
+
+Dashboard Cửa hàng
+
+Trang Bán hàng (POS)
+
+Trang Quản lý Kho Cửa hàng
+
+Trang Quản lý Thu Chi Cửa hàng
+
+Trang Báo cáo Cửa hàng
+
+Trang Quản lý Tài chính
+
+Trang Quản lý Nhà cung cấp
+
+Trang Quản lý Người dùng & Phân quyền
