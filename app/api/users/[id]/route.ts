@@ -4,10 +4,10 @@ import pool from '@/lib/db';
 // Cập nhật người dùng
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { username, password, full_name, email, phone, role, department, status } = body;
 
@@ -75,10 +75,10 @@ export async function PUT(
 // Xóa người dùng
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const result = await pool.query(
       'DELETE FROM users WHERE id = $1 RETURNING username',
