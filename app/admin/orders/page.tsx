@@ -53,6 +53,7 @@ export default function OrdersPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
   
   const [formData, setFormData] = useState({
@@ -104,6 +105,7 @@ export default function OrdersPage() {
 
   const openAddForm = () => {
     const newCode = `DH${Date.now().toString().slice(-8)}`;
+    setEditingOrderId(null);
     setFormData({
       order_code: newCode,
       customer_id: '',
@@ -116,8 +118,45 @@ export default function OrdersPage() {
     setShowForm(true);
   };
 
+  const openEditForm = async (orderId: string) => {
+    try {
+      const res = await fetch(`/api/orders/${orderId}`);
+      const data = await res.json();
+
+      if (data.success) {
+        const order = data.order;
+        
+        if (order.status !== 'pending') {
+          alert('Chỉ có thể chỉnh sửa đơn hàng đang chờ xử lý');
+          return;
+        }
+
+        setEditingOrderId(orderId);
+        setFormData({
+          order_code: order.order_code,
+          customer_id: order.customer_id,
+          order_type: order.order_type,
+        });
+
+        const items = data.items.map((item: any) => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+          price: item.price,
+        }));
+        setOrderItems(items);
+        setMaterialCheck([]);
+        setShowMaterialCheck(false);
+        setFormError('');
+        setShowForm(true);
+      }
+    } catch (error) {
+      alert('Có lỗi xảy ra khi tải thông tin đơn hàng');
+    }
+  };
+
   const closeForm = () => {
     setShowForm(false);
+    setEditingOrderId(null);
     setFormError('');
   };
 
@@ -187,8 +226,11 @@ export default function OrdersPage() {
     }
 
     try {
-      const res = await fetch('/api/orders', {
-        method: 'POST',
+      const url = editingOrderId ? `/api/orders/${editingOrderId}` : '/api/orders';
+      const method = editingOrderId ? 'PUT' : 'POST';
+      
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
@@ -207,10 +249,63 @@ export default function OrdersPage() {
 
       await fetchData();
       closeForm();
+      alert(editingOrderId ? '✅ Cập nhật đơn hàng thành công!' : '✅ Tạo đơn hàng thành công!');
     } catch (error) {
-      setFormError('Có lỗi xảy ra khi tạo đơn hàng');
+      setFormError(editingOrderId ? 'Có lỗi xảy ra khi cập nhật đơn hàng' : 'Có lỗi xảy ra khi tạo đơn hàng');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleSendToWarehouse = async (id: string) => {
+    if (!confirm('Chuyển đơn hàng này xuống kho NVL để kiểm tra?')) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/orders/${id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'waiting_material' }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || 'Có lỗi xảy ra');
+        return;
+      }
+
+      await fetchData();
+      alert('✅ Đã chuyển đơn hàng xuống kho NVL. Vui lòng kiểm tra tại trang Kho NVL.');
+    } catch (error) {
+      alert('Có lỗi xảy ra khi chuyển đơn hàng');
+    }
+  };
+
+  const handleCancel = async (id: string) => {
+    if (!confirm('Hủy đơn hàng này?')) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/orders/${id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'cancelled' }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || 'Có lỗi xảy ra');
+        return;
+      }
+
+      await fetchData();
+      alert('✅ Đã hủy đơn hàng');
+    } catch (error) {
+      alert('Có lỗi xảy ra khi hủy đơn hàng');
     }
   };
 
@@ -278,7 +373,9 @@ export default function OrdersPage() {
       {showForm && (
         <div className="bg-white rounded-lg shadow-lg border-2 border-blue-500">
           <div className="px-6 py-4 bg-blue-600 flex justify-between items-center">
-            <h3 className="text-xl font-semibold text-white">Tạo đơn hàng sản xuất</h3>
+            <h3 className="text-xl font-semibold text-white">
+              {editingOrderId ? `Chỉnh sửa đơn hàng: ${formData.order_code}` : 'Tạo đơn hàng sản xuất'}
+            </h3>
             <button
               onClick={closeForm}
               className="text-white hover:text-gray-200 text-2xl font-bold"
@@ -300,6 +397,7 @@ export default function OrdersPage() {
                   value={formData.order_code}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  disabled={!!editingOrderId}
                   required
                 />
               </div>
@@ -477,7 +575,10 @@ export default function OrdersPage() {
                 className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 font-medium"
                 disabled={submitting}
               >
-                {submitting ? 'Đang tạo...' : 'Tạo đơn hàng'}
+                {submitting 
+                  ? (editingOrderId ? 'Đang cập nhật...' : 'Đang tạo...') 
+                  : (editingOrderId ? 'Cập nhật đơn hàng' : 'Tạo đơn hàng')
+                }
               </button>
             </div>
           </form>
@@ -538,19 +639,43 @@ export default function OrdersPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">{getStatusBadge(order.status)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                     <Link
                       href={`/admin/orders/${order.id}`}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
+                      className="text-blue-600 hover:text-blue-900"
                     >
                       Chi tiết
                     </Link>
-                    <button
-                      onClick={() => handleDelete(order.id, order.order_code)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Xóa
-                    </button>
+                    {order.status === 'pending' && (
+                      <>
+                        <button
+                          onClick={() => openEditForm(order.id)}
+                          className="text-orange-600 hover:text-orange-900"
+                        >
+                          Sửa
+                        </button>
+                        <button
+                          onClick={() => handleSendToWarehouse(order.id)}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          📦 Chuyển kho NVL
+                        </button>
+                        <button
+                          onClick={() => handleCancel(order.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Hủy
+                        </button>
+                      </>
+                    )}
+                    {order.status === 'pending' && (
+                      <button
+                        onClick={() => handleDelete(order.id, order.order_code)}
+                        className="text-gray-600 hover:text-gray-900"
+                      >
+                        Xóa
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

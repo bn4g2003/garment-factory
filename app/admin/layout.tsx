@@ -62,7 +62,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           icon: '▪',
           children: [
             { name: 'Kho NVL', path: '/admin/warehouse/materials', icon: '·' },
-            { name: 'Kho thành phẩm', path: '/admin/warehouse/products', icon: '·' },
+            { name: 'Kho thành phẩm', path: '/admin/warehouse/finished-products', icon: '·' },
           ],
         },
       ],

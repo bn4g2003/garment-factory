@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       total_amount += item.quantity * item.price;
     }
 
-    // Tạo đơn hàng
+    // Tạo đơn hàng với status 'pending' - chờ xác nhận
     const orderResult = await client.query(
       `INSERT INTO orders (order_code, customer_id, order_type, total_amount, debt_amount, status, created_by, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $4, 'pending', $5, NOW(), NOW())
