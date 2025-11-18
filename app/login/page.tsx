@@ -33,11 +33,25 @@ export default function LoginPage() {
       // Lưu thông tin user vào localStorage
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      // Chuyển hướng theo role
-      if (data.user.role === 'admin') {
-        router.push('/admin/users');
-      } else {
-        router.push('/dashboard');
+      // Chuyển hướng theo role (role-specific dashboards)
+      switch (data.user.role) {
+        case 'admin':
+          router.push('/admin/users');
+          break;
+        case 'factory_manager':
+          // route for factory manager dashboard (implement page later)
+          router.push('/factory/dashboard');
+          break;
+        case 'production_staff':
+          // route for production staff dashboard (implement page later)
+          router.push('/production/dashboard');
+          break;
+        case 'warehouse_staff':
+          // route for warehouse staff dashboard (implement page later)
+          router.push('/warehouse/dashboard');
+          break;
+        default:
+          router.push('/dashboard');
       }
     } catch (err) {
       setError('Có lỗi xảy ra. Vui lòng thử lại.');
