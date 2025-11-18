@@ -81,12 +81,19 @@ export async function POST(request: NextRequest) {
       );
 
       // Trừ tồn kho thành phẩm xưởng (store_id IS NULL)
-      await client.query(
+      const updateResult = await client.query(
         `UPDATE finished_products 
          SET quantity = quantity - $1, updated_at = NOW()
-         WHERE product_id = $2 AND store_id IS NULL`,
+         WHERE product_id = $2 AND store_id IS NULL
+         RETURNING *`,
         [item.quantity, item.product_id]
       );
+
+      console.log(`Trừ kho xưởng: product_id=${item.product_id}, quantity=${item.quantity}, rows affected=${updateResult.rowCount}`);
+      
+      if (updateResult.rowCount === 0) {
+        console.warn(`⚠️ Không tìm thấy sản phẩm ${item.product_id} trong kho xưởng (store_id IS NULL)`);
+      }
     }
 
     // Cập nhật trạng thái đơn hàng

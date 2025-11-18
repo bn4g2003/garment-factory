@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
-// Lấy danh sách kho thành phẩm
+// Lấy danh sách kho thành phẩm (CHỈ KHO XƯỞNG - store_id IS NULL)
 export async function GET() {
   try {
     const result = await pool.query(
       `SELECT fp.*, 
               p.code as product_code,
               p.name as product_name,
-              p.price as product_price,
-              s.name as store_name
+              p.price as product_price
        FROM finished_products fp
        JOIN products p ON fp.product_id = p.id
-       LEFT JOIN stores s ON fp.store_id = s.id
+       WHERE fp.store_id IS NULL
        ORDER BY fp.created_at DESC`
     );
 
