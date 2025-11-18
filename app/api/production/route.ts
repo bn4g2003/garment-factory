@@ -1,8 +1,16 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const history = searchParams.get('history') === 'true';
+
+    // Lấy lịch sử (đã hoàn thành) hoặc đang sản xuất
+    const whereClause = history 
+      ? "WHERE o.status IN ('completed', 'cancelled')"
+      : "WHERE o.status IN ('confirmed', 'in_production')";
+
     const result = await pool.query(
       `SELECT 
         o.id as order_id,
@@ -30,7 +38,7 @@ export async function GET() {
        FROM orders o
        LEFT JOIN customers c ON o.customer_id = c.id
        LEFT JOIN production_process pp ON o.id = pp.order_id
-       WHERE o.status IN ('confirmed', 'in_production')
+       ${whereClause}
        GROUP BY o.id, c.name, c.code
        ORDER BY o.created_at DESC`
     );
