@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface Store {
   id: string;
@@ -455,7 +456,7 @@ export default function StoreCustomerOrdersPage() {
                     {getStatusBadge(order.status)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <button className="text-blue-600 hover:text-blue-900">Chi tiết</button>
+                    <Link href={`/admin/store/customer-orders/${order.id}`} className="text-blue-600 hover:text-blue-900">Chi tiết</Link>
                   </td>
                 </tr>
               ))}
