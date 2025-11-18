@@ -79,6 +79,7 @@ export default function OrdersPage() {
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const router = useRouter();
 
   useEffect(() => {
@@ -350,10 +351,32 @@ export default function OrdersPage() {
   const customerOrders = orders.filter((o) => !o.store_id);
   const storeOrders = orders.filter((o) => o.store_id);
 
-  const filteredOrders = (activeTab === 'customer' ? customerOrders : storeOrders).filter(
-    (o) =>
-      o.order_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      o.customer_name?.toLowerCase().includes(searchTerm.toLowerCase())
+  // Sắp xếp: Đơn hàng "Chờ xử lý" (pending) lên đầu, sau đó sắp xếp theo ngày tạo mới nhất
+  const sortedCustomerOrders = [...customerOrders].sort((a, b) => {
+    // Ưu tiên đơn hàng pending lên đầu
+    if (a.status === 'pending' && b.status !== 'pending') return -1;
+    if (a.status !== 'pending' && b.status === 'pending') return 1;
+    // Nếu cùng trạng thái, sắp xếp theo ngày tạo mới nhất
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
+  const sortedStoreOrders = [...storeOrders].sort((a, b) => {
+    if (a.status === 'pending' && b.status !== 'pending') return -1;
+    if (a.status !== 'pending' && b.status === 'pending') return 1;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
+  // Lọc theo tìm kiếm và trạng thái
+  const filteredOrders = (activeTab === 'customer' ? sortedCustomerOrders : sortedStoreOrders).filter(
+    (o) => {
+      const matchesSearch = 
+        o.order_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        o.customer_name?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = statusFilter === 'all' || o.status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    }
   );
 
   const getStatusBadge = (status: string) => {
@@ -604,23 +627,39 @@ export default function OrdersPage() {
       )}
 
       <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-          <div className="flex items-center gap-4">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-gray-900">Danh sách đơn hàng</h2>
+            <button
+              onClick={openAddForm}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              + Tạo đơn hàng
+            </button>
+          </div>
+          
+          {/* Thanh tìm kiếm và filter */}
+          <div className="flex gap-3 items-center">
             <input
               type="text"
               placeholder="Tìm theo mã đơn, khách hàng..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
             />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+            >
+              <option value="all">Tất cả trạng thái</option>
+              <option value="pending">Chờ xử lý</option>
+              <option value="confirmed">Đã xác nhận</option>
+              <option value="in_production">Đang sản xuất</option>
+              <option value="completed">Hoàn thành</option>
+              <option value="cancelled">Đã hủy</option>
+            </select>
           </div>
-          <button
-            onClick={openAddForm}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            + Tạo đơn hàng
-          </button>
         </div>
 
         {/* Tabs */}

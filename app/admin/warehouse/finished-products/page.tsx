@@ -36,11 +36,15 @@ interface FinishedProduct {
 interface ProductExport {
   id: string;
   export_code: string;
+  order_id: string;
   order_code: string;
   customer_name: string;
+  customer_code: string;
+  customer_phone: string;
   total_amount: number;
   exported_by_name: string;
   export_date: string;
+  items: OrderItem[];
 }
 
 export default function FinishedProductsPage() {
@@ -301,18 +305,44 @@ export default function FinishedProductsPage() {
     return <div className="min-h-screen flex items-center justify-center"><div className="text-lg text-gray-900">Đang tải...</div></div>;
   }
 
+  const handlePrintExportFromHistory = async (exportItem: ProductExport) => {
+    try {
+      // Lấy thông tin chi tiết đơn hàng và items
+      const res = await fetch(`/api/orders/${exportItem.order_id}`);
+      const data = await res.json();
+      
+      if (data.success) {
+        const exportData = {
+          export_code: exportItem.export_code,
+          export_date: exportItem.export_date,
+        };
+        
+        const order = {
+          order_code: exportItem.order_code,
+          customer_code: exportItem.customer_code,
+          customer_name: exportItem.customer_name,
+          customer_phone: exportItem.customer_phone,
+        };
+        
+        printExportPDF(exportData, order as Order, data.items);
+      }
+    } catch (error) {
+      alert('Có lỗi xảy ra khi in phiếu xuất');
+    }
+  };
+
   return (
     <main className="p-6 space-y-6">
       {showModal && selectedOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className={`px-6 py-4 ${modalType === 'import' ? 'bg-green-600' : 'bg-blue-600'} flex justify-between items-center`}>
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col border-2 border-gray-300">
+            <div className={`px-6 py-4 ${modalType === 'import' ? 'bg-green-600' : 'bg-blue-600'} flex justify-between items-center flex-shrink-0`}>
               <h3 className="text-xl font-semibold text-white">
                 {modalType === 'import' ? 'Nhập kho thành phẩm' : 'Xuất kho thành phẩm'} - {selectedOrder.order_code}
               </h3>
-              <button onClick={() => { setShowModal(false); setSelectedOrder(null); setExportData(null); }} className="text-white hover:text-gray-200 text-2xl font-bold">×</button>
+              <button onClick={() => { setShowModal(false); setSelectedOrder(null); setExportData(null); }} className="text-white hover:text-gray-200 text-2xl font-bold leading-none w-8 h-8 flex items-center justify-center rounded hover:bg-white hover:bg-opacity-20">×</button>
             </div>
-            <div className="px-6 py-6">
+            <div className="px-6 py-6 overflow-y-auto flex-1">
               <div className="mb-6">
                 <h4 className="text-lg font-semibold mb-3 text-gray-900">Thông tin đơn hàng</h4>
                 <div className="grid grid-cols-2 gap-4 mb-4">
@@ -334,16 +364,16 @@ export default function FinishedProductsPage() {
                   ))}
                 </div>
               </div>
-              <div className="flex justify-end gap-3">
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 flex-shrink-0">
                 {exportData ? (
                   <>
-                    <button onClick={() => printExportPDF(exportData, selectedOrder, orderItems)} className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">🖨️ In phiếu xuất</button>
-                    <button onClick={() => { setShowModal(false); setSelectedOrder(null); setExportData(null); }} className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 font-medium">Đóng</button>
+                    <button onClick={() => printExportPDF(exportData, selectedOrder, orderItems)} className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium transition-colors">🖨️ In phiếu xuất</button>
+                    <button onClick={() => { setShowModal(false); setSelectedOrder(null); setExportData(null); }} className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 font-medium transition-colors">Đóng</button>
                   </>
                 ) : (
                   <>
-                    <button onClick={() => { setShowModal(false); setSelectedOrder(null); }} className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-100 text-gray-700 font-medium">Hủy</button>
-                    <button onClick={modalType === 'import' ? handleConfirmImport : handleConfirmExport} className={`px-6 py-2 ${modalType === 'import' ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded-md font-medium`}>
+                    <button onClick={() => { setShowModal(false); setSelectedOrder(null); }} className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-100 text-gray-700 font-medium transition-colors">Hủy</button>
+                    <button onClick={modalType === 'import' ? handleConfirmImport : handleConfirmExport} className={`px-6 py-2 ${modalType === 'import' ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded-md font-medium transition-colors`}>
                       ✅ Xác nhận {modalType === 'import' ? 'nhập kho' : 'xuất kho'}
                     </button>
                   </>
@@ -496,6 +526,7 @@ export default function FinishedProductsPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tổng tiền</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Người xuất</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày xuất</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -507,6 +538,9 @@ export default function FinishedProductsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{exp.total_amount.toLocaleString()}đ</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{exp.exported_by_name}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{new Date(exp.export_date).toLocaleString('vi-VN')}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <button onClick={() => handlePrintExportFromHistory(exp)} className="text-blue-600 hover:text-blue-900 font-medium">🖨️ In phiếu xuất</button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
