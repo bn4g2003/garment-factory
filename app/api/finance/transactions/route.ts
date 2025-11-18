@@ -1,22 +1,24 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { NextRequest, NextResponse } from "next/server";
+import { Pool } from "pg";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
-    const type = searchParams.get('type'); // thu, chi
-    const storeId = searchParams.get('storeId');
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    const type = searchParams.get("type"); // thu, chi
+    const storeId = searchParams.get("storeId");
 
-    let filters = ['status = $1'];
-    const params: any[] = ['completed'];
+    let filters = ["t.status = $1"];
+    const params: any[] = ["completed"];
     let paramIndex = 2;
 
     if (startDate && endDate) {
-      filters.push(`transaction_date BETWEEN $${paramIndex} AND $${paramIndex + 1}`);
+      filters.push(
+        `transaction_date BETWEEN $${paramIndex} AND $${paramIndex + 1}`
+      );
       params.push(startDate, endDate);
       paramIndex += 2;
     }
@@ -33,7 +35,8 @@ export async function GET(request: NextRequest) {
       paramIndex++;
     }
 
-    const whereClause = filters.length > 0 ? `WHERE ${filters.join(' AND ')}` : '';
+    const whereClause =
+      filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
 
     const result = await pool.query(
       `SELECT 
@@ -54,9 +57,9 @@ export async function GET(request: NextRequest) {
       transactions: result.rows,
     });
   } catch (error: any) {
-    console.error('Error fetching transactions:', error);
+    console.error("Error fetching transactions:", error);
     return NextResponse.json(
-      { success: false, error: 'Lỗi khi tải danh sách giao dịch' },
+      { success: false, error: "Lỗi khi tải danh sách giao dịch" },
       { status: 500 }
     );
   }
@@ -76,12 +79,14 @@ export async function POST(request: NextRequest) {
 
     if (!transaction_type || !amount || !created_by) {
       return NextResponse.json(
-        { error: 'Vui lòng nhập đầy đủ thông tin' },
+        { error: "Vui lòng nhập đầy đủ thông tin" },
         { status: 400 }
       );
     }
 
-    const transaction_code = `${transaction_type === 'thu' ? 'THU' : 'CHI'}-${Date.now().toString().slice(-8)}`;
+    const transaction_code = `${
+      transaction_type === "thu" ? "THU" : "CHI"
+    }-${Date.now().toString().slice(-8)}`;
 
     const result = await pool.query(
       `INSERT INTO transactions 
@@ -104,9 +109,9 @@ export async function POST(request: NextRequest) {
       transaction: result.rows[0],
     });
   } catch (error: any) {
-    console.error('Error creating transaction:', error);
+    console.error("Error creating transaction:", error);
     return NextResponse.json(
-      { error: 'Có lỗi xảy ra khi tạo giao dịch' },
+      { error: "Có lỗi xảy ra khi tạo giao dịch" },
       { status: 500 }
     );
   }
